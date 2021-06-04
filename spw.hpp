@@ -5,6 +5,9 @@
  * the awful code you write. So as to mitigate our suffering, these windows _do_
  * support scrolling, so as to ensure all of yours sins are exposed.
  */
+#include "common.hpp"
+#include <string>
+
 #ifdef USE_APPKIT
 #include "w_appkit.hpp"
 #endif
@@ -16,6 +19,9 @@
 #endif
 #ifdef USE_WINFORMS
 #include "w_winforms.hpp"
+#endif
+#ifdef USE_SDL2
+#include "W_sdl2.hpp"
 #endif
 
 namespace spw {
@@ -32,5 +38,9 @@ namespace spw {
 #ifdef USE_WINFORMS
     createWinFormsWindow(level, title, body);
 #endif
+#ifdef USE_SDL2
+    createSDL2Window(level, title, body);
+#endif
+    return false;
   }
 }
