@@ -2,10 +2,10 @@
 
 namespace spw {
   enum Level {
-    INFO,
-    DEBUG,
-    WARNING,
-    ERROR,
-    FATAL,
+    Info,
+    Debug,
+    Warning,
+    Error,
+    Fatal,
   };
 }
