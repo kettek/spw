@@ -132,8 +132,8 @@ namespace spw {
     display_width = XDisplayWidth(display, screen_num);
     display_height = XDisplayHeight(display, screen_num);
     //
-    window_width = 600;
-    window_height = 600;
+    window_width = default_width;
+    window_height = default_height;
     if (window_width > display_width) {
       window_width = display_width / 2;
     }

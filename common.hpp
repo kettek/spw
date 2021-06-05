@@ -8,4 +8,7 @@ namespace spw {
     Error,
     Fatal,
   };
+
+  static unsigned int default_width = 600;
+  static unsigned int default_height = 600;
 }
