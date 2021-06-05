@@ -19,5 +19,9 @@ project "basic"
       optimize "On"
 
    filter { "system:Windows" }
-      defines { "USE_WINFORMS" }
+      defines { "SPW_USE_WINFORMS" }
    
+   filter { "system:Linux" }
+      defines { "SPW_USE_X11" }
+      links { "X11" }
+
