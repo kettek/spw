@@ -17,8 +17,8 @@
 #ifdef SPW_USE_X11
 #include "w_x11.hpp"
 #endif
-#ifdef SPW_USE_WINFORMS
-#include "w_winforms.hpp"
+#ifdef SPW_USE_WIN32
+#include "w_win32.hpp"
 #endif
 #ifdef SPW_USE_SDL2
 #include "W_sdl2.hpp"
@@ -35,8 +35,8 @@ namespace spw {
 #ifdef SPW_USE_X11
     createX11Window(level, title, body);
 #endif
-#ifdef SPW_USE_WINFORMS
-    createWinFormsWindow(level, title, body);
+#ifdef SPW_USE_WIN32
+    createWin32Window(level, title, body);
 #endif
 #ifdef SPW_USE_SDL2
     createSDL2Window(level, title, body);
