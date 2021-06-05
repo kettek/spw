@@ -7,37 +7,121 @@
 #include "common.hpp"
 
 namespace spw {
+  static Display *display;
+  static XFontStruct *font;
+  static Window base_window, text_window, title_window, buttons_window;
+  static int screen_num;
+  static XColor fg, bg, mg;
+  static GC     gc;
+  unsigned int padding;
+
+  void createTextArea() {
+    unsigned long m;
+    XSetWindowAttributes a;
+
+    m = CWBackPixel | CWBorderPixel | CWEventMask;
+    a.event_mask = ExposureMask;
+    a.border_pixel = mg.pixel;
+    a.background_pixel = bg.pixel;
+    text_window = XCreateWindow(display, base_window,
+        padding, padding, 140, 100, 2,
+        DefaultDepth(display, screen_num), InputOutput,
+        DefaultVisual(display, screen_num), m, &a);
+  }
+  void fitTextArea() {
+    Window root_return;
+    int x_return, y_return;
+    unsigned int width_return, height_return;
+    unsigned int border_width_return;
+    unsigned int depth_return;
+
+    int text_x, text_y;
+    unsigned int text_width, text_height;
+
+    XGetGeometry(display, base_window, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
+
+    text_width = width_return - padding*2 - border_width_return*2;
+    text_height = height_return - height_return / 8;
+
+    // Adjust for title.
+    XGetGeometry(display, title_window, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
+    text_x = padding;
+    text_y = y_return + height_return;
+
+    // TODO: Adjust for buttons.
+    XMoveResizeWindow(display, text_window, text_x, text_y, text_width, text_height);
+  }
+  void createButtons() {
+  }
+  void fitButtons() {
+    // TODO: position after text_window
+  }
+
+  void createTitle(std::string title) {
+    unsigned long m;
+    XSetWindowAttributes a;
+
+    m = CWEventMask;
+    a.event_mask = ExposureMask;
+    //a.border_pixel = mg.pixel;
+    //a.background_pixel = bg.pixel;
+   
+    int direction_return;
+    int font_ascent_return, font_descent_return;
+    XCharStruct overall_return;
+    XQueryTextExtents(display, font->fid, (char*)title.c_str(), title.length(), &direction_return, &font_ascent_return, &font_descent_return, &overall_return);
+
+    title_window = XCreateWindow(display, base_window,
+        padding, padding, overall_return.width, overall_return.descent - overall_return.ascent, 0,
+        DefaultDepth(display, screen_num), InputOutput,
+        DefaultVisual(display, screen_num), m, &a);
+    XDrawImageString(display, title_window, gc, 0, 0, (char*)title.c_str(), title.length());
+  }
+  void fitTitle(std::string title) {
+    int direction_return;
+    int font_ascent_return, font_descent_return;
+    XCharStruct overall_return;
+    XQueryTextExtents(display, font->fid, (char*)title.c_str(), title.length(), &direction_return, &font_ascent_return, &font_descent_return, &overall_return);
+
+    Window root_return;
+    int x_return, y_return;
+    unsigned int width_return, height_return;
+    unsigned int border_width_return;
+    unsigned int depth_return;
+
+    XResizeWindow(display, title_window, width_return - padding*2 - border_width_return*2, overall_return.descent - overall_return.ascent);
+
+    XDrawImageString(display, title_window, gc, 0, 0, (char*)title.c_str(), title.length());
+  }
+
   bool createX11Window(spw::Level level, const std::string title, const std::string body) {
-    Display *display;
-    Window base_window, text_window, slider_window, trough_window;
+    Window slider_window, trough_window;
     XSetWindowAttributes  attrs;
     XSizeHints            wmsize;
     XWMHints              wmhints;
     XTextProperty         window_name, icon_name;
     XEvent                base_event;
-    GC                    gc;
     XGCValues             gc_values;
-    XFontStruct           *font;
-    XColor                white, black, grey;
     Pixmap                buffer;
     int                   display_width, display_height;
     int                   window_x, window_y, window_width, window_height;
 
-    char *win_name = "Vscroll";
-    char *ico_name = "Vs";
+    char *win_name = (char*)title.c_str();
+    char *ico_name = "spw";
 
     bool done = false;
-    int screen_num, i ,y, new_end, old_end;
+    int i ,y, new_end, old_end;
     uint64_t mask;
+    padding = 2;
 
     // Open X11 server connection.
     display = XOpenDisplay("");
 
     // Get necessary variables.
     screen_num = DefaultScreen(display);
-    white.pixel = BlackPixel(display, screen_num);
-    black.pixel = WhitePixel(display, screen_num);
-    grey.pixel = 0xd3d3d3;
+    fg.pixel = 0xe3e3e3;
+    bg.pixel = 0x232323;
+    mg.pixel = 0xa3a3a3;
     display_width = XDisplayWidth(display, screen_num);
     display_height = XDisplayHeight(display, screen_num);
     //
@@ -54,8 +138,8 @@ namespace spw {
     std::cout << window_x << "x" << window_y << " " << window_width << "x" << window_height;
 
     // Set attributes and mask.
-    attrs.border_pixel = black.pixel;
-    attrs.background_pixel = white.pixel;
+    attrs.border_pixel = mg.pixel;
+    attrs.background_pixel = bg.pixel;
     attrs.event_mask = ExposureMask;
     mask = CWBackPixel | CWBorderPixel | CWEventMask;
 
@@ -82,11 +166,15 @@ namespace spw {
     XSetWMIconName(display, base_window, &icon_name);
 
     // Get window resources.
-    gc_values.background = white.pixel;
-    gc_values.foreground = black.pixel;
+    gc_values.background = mg.pixel;
+    gc_values.foreground = fg.pixel;
     mask = GCForeground | GCBackground;
     gc = XCreateGC(display, base_window, mask, &gc_values);
-    font = XLoadQueryFont(display, "−adobe−times−bold−r−normal−−0−0−0−0−p−0−iso8859−1");
+    font = XLoadQueryFont(display, "cursor");
+    if (font == NULL) {
+      std::cout << "OH NO" << std::endl;
+      return false;
+    }
 
     XSelectInput(display, base_window,
         ExposureMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask | PointerMotionMask
@@ -104,9 +192,24 @@ namespace spw {
 
     // Create sub windows.
     // TODO
+    createTextArea();
+    createTitle(title);
+    /*mask = CWBackPixel | CWBorderPixel | CWEventMask;
+    attrs.background_pixel = bg.pixel;
+    text_window = XCreateWindow(display, base_window,
+        10, 20, 140, 100, 2,
+        DefaultDepth(display, screen_num), InputOutput,
+        DefaultVisual(display, screen_num), mask, &attrs);*/
+
 
     // Map windows.
     XMapWindow(display, base_window);
+    XMapWindow(display, text_window);
+    XMapWindow(display, title_window);
+    
+    //
+    fitTitle(title);
+    fitTextArea();
 
     // Event loop!
     while(!done) {
@@ -124,10 +227,11 @@ namespace spw {
           done = true;
           break;
         case ConfigureNotify:
+          fitButtons();
+          fitTextArea();
           std::cout << base_event.xconfigure.type << ": " << base_event.xconfigure.x << "x" << base_event.xconfigure.height << ": " << base_event.xconfigure.width << "x" << base_event.xconfigure.height << std::endl;
           break;
         case MotionNotify:
-          std::cout << "Got motion" << std::endl;
           // TODO
           break;
         case DestroyNotify:
