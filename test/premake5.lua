@@ -19,7 +19,7 @@ project "basic"
       optimize "On"
 
    filter { "system:Windows" }
-      defines { "SPW_USE_WINFORMS" }
+      defines { "SPW_USE_WIN32" }
    
    filter { "system:Linux" }
       defines { "SPW_USE_X11" }
