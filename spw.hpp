@@ -8,37 +8,37 @@
 #include "common.hpp"
 #include <string>
 
-#ifdef USE_APPKIT
+#ifdef SPW_USE_APPKIT
 #include "w_appkit.hpp"
 #endif
-#ifdef USE_WAYLAND
+#ifdef SPW_USE_WAYLAND
 #include "w_wayland.hpp"
 #endif
-#ifdef USE_X11
+#ifdef SPW_USE_X11
 #include "w_x11.hpp"
 #endif
-#ifdef USE_WINFORMS
+#ifdef SPW_USE_WINFORMS
 #include "w_winforms.hpp"
 #endif
-#ifdef USE_SDL2
+#ifdef SPW_USE_SDL2
 #include "W_sdl2.hpp"
 #endif
 
 namespace spw {
   bool create(spw::Level level, const std::string &title, const std::string &body) {
-#ifdef USE_APPKIT
+#ifdef SPW_USE_APPKIT
     createAppKitWindow(level, title, body);
 #endif
-#ifdef USE_WAYLAND
+#ifdef SPW_USE_WAYLAND
     createWaylandWindow(level, title, body);
 #endif
-#ifdef USE_X11
+#ifdef SPW_USE_X11
     createX11Window(level, title, body);
 #endif
-#ifdef USE_WINFORMS
+#ifdef SPW_USE_WINFORMS
     createWinFormsWindow(level, title, body);
 #endif
-#ifdef USE_SDL2
+#ifdef SPW_USE_SDL2
     createSDL2Window(level, title, body);
 #endif
     return false;
