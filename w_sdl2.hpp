@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "common.hpp"
-#include <sdl.h>
+#include <SDL2/SDL.h>
 
 namespace spw {
   bool createSDL2Window(spw::Level level, const std::string title, const std::string body) {
