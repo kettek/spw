@@ -20,6 +20,7 @@ namespace spw {
 
   bool createWin32Window(spw::Level level, const std::string title, const std::string body) {
     // Register the window class.
+    unsigned int width = default_width, height = default_height;
     const wchar_t CLASS_NAME[] = L"SPW";
 
     WNDCLASS wc = { };
@@ -41,8 +42,8 @@ namespace spw {
       WS_HSCROLL | WS_VSCROLL, // window styles 
       CW_USEDEFAULT,        // default horizontal position 
       CW_USEDEFAULT,        // default vertical position 
-      CW_USEDEFAULT,        // default width 
-      CW_USEDEFAULT,        // default height 
+      width,        // default width 
+      height,        // default height 
       (HWND)NULL,           // no parent for overlapped windows 
       (HMENU)NULL,          // use the window class menu 
       hInstance,            // global instance handle  
@@ -51,6 +52,27 @@ namespace spw {
     // Create scrollable child.
     if (hwnd == NULL) {
       return 0;
+    }
+
+    HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    if (monitor != NULL) {
+      MONITORINFO lpmi;
+      lpmi.cbSize = sizeof(MONITORINFO);
+      if (GetMonitorInfo(monitor, &lpmi) != 0) {
+        unsigned int display_width = lpmi.rcWork.right - lpmi.rcWork.left;
+        unsigned int display_height = lpmi.rcWork.bottom - lpmi.rcWork.top;
+
+        if (width > display_width) {
+          width = display_width / 2;
+        }
+        if (height > display_height) {
+          height = display_height / 2;
+        }
+        unsigned int window_x = display_width / 2 - width / 2;
+        unsigned int window_y = display_height / 2 - height / 2;
+
+        SetWindowPos(hwnd, HWND_TOPMOST, window_x, window_y, width, height, SWP_SHOWWINDOW);
+      }
     }
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
